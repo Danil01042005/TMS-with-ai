@@ -1,0 +1,82 @@
+:root {
+	--bg: #e9e8fb; /* светлый фиолетовый фон */
+	--surface: #ffffff;
+	--panel: #ffffff;
+	--text: #1f2937;
+	--muted: #6b7280;
+	--primary: #5563ff; /* для ссылок/основных кнопок */
+	--primary-700: #3d4cf0;
+	--accent: #ff7a00; /* акцентная кнопка (Sign in) */
+	--accent-700: #e56c00;
+	--ok: #16a34a;
+	--danger: #dc2626;
+	--border: #e5e7eb;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 Poppins, Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+
+.container { max-width: 1140px; margin: 0 auto; padding: 24px; }
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 8px 24px rgba(17, 24, 39, 0.06); }
+.row { display: flex; gap: 16px; align-items: center; }
+.col { display: flex; flex-direction: column; gap: 8px; }
+.spacer { height: 16px; }
+
+a { color: var(--primary); text-decoration: none; font-weight: 500; }
+a:hover { color: var(--primary-700); }
+
+input, button { height: 44px; border-radius: 12px; border: 1px solid var(--border); background: #fff; color: var(--text); padding: 0 14px; }
+input::placeholder { color: #9ca3af; }
+input:focus { outline: 3px solid rgba(85, 99, 255, 0.2); border-color: var(--primary); }
+button { background: var(--primary); border-color: var(--primary); font-weight: 600; cursor: pointer; color: #fff; }
+button:hover { background: var(--primary-700); }
+button.ghost { background: transparent; color: var(--text); }
+button.accent { background: var(--accent); border-color: var(--accent); }
+button.accent:hover { background: var(--accent-700); }
+small.muted, .muted { color: var(--muted); }
+
+.header { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; letter-spacing: 0.2px; }
+.brand-badge { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; background: #eef2ff; border: 1px solid var(--border); color: var(--primary-700); }
+
+.nav { display: flex; gap: 24px; align-items: center; }
+.nav a { color: #111827; opacity: 0.8; }
+.nav a:hover { opacity: 1; }
+
+.form { display: grid; gap: 14px; }
+.form .row { justify-content: space-between; }
+.form label { font-size: 12px; color: var(--muted); }
+.error { color: var(--danger); }
+.success { color: var(--ok); }
+
+/* HERO / AUTH GRID */
+.hero {
+	position: relative;
+	background: radial-gradient(1200px 600px at 80% 20%, rgba(255,255,255,0.8), rgba(255,255,255,0) 60%), var(--bg);
+}
+
+.login-grid {
+	display: grid;
+	grid-template-columns: 1fr 1.2fr;
+	gap: 32px;
+	align-items: stretch;
+}
+
+.login-card { padding: 28px; border-radius: 20px; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 12px 30px rgba(17, 24, 39, 0.06); }
+.login-card h2 { margin: 0 0 8px; }
+.login-card .subtitle { color: var(--muted); margin-bottom: 16px; }
+
+.hero-pane { position: relative; border-radius: 28px; background: linear-gradient(120deg, #c7d2fe 0%, #e9e8fb 60%); overflow: hidden; border: 1px solid var(--border); display: flex; align-items: flex-end; justify-content: center; }
+.hero-image { width: 100%; height: 100%; object-fit: cover; }
+
+.floating-card { position: absolute; left: 24px; bottom: 24px; background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 14px 16px; box-shadow: 0 10px 24px rgba(17,24,39,0.08); display: flex; gap: 12px; align-items: center; }
+.floating-card .icon { width: 40px; height: 40px; border-radius: 10px; background: #eef2ff; display: grid; place-items: center; color: var(--primary-700); }
+.floating-card .value { font-weight: 800; font-size: 20px; }
+.floating-card .label { font-size: 12px; color: var(--muted); }
+
+/* HOME HERO */
+.home-hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; align-items: center; }
+.home-hero h1 { font-size: 36px; line-height: 1.2; margin: 0; }
+.home-hero p { color: var(--muted); margin: 8px 0 16px; }
+
