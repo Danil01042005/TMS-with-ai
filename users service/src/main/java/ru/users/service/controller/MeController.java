@@ -1,4 +1,4 @@
-package ru.example.underarmor.controller;
+package ru.users.service.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -30,6 +30,8 @@ public class MeController {
 		return ResponseEntity.ok(Map.of("username", principal, "roles", roles));
 	}
 }
+
+
 
 
 

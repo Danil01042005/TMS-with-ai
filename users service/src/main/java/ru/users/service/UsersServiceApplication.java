@@ -1,15 +1,17 @@
-package ru.example.underarmor;
+package ru.users.service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ExampleUnderArmorApplication {
+public class UsersServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ExampleUnderArmorApplication.class, args);
+		SpringApplication.run(UsersServiceApplication.class, args);
 	}
 }
+
+
 
 
 

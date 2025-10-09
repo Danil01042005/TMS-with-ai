@@ -1,4 +1,4 @@
-package ru.example.underarmor.config;
+package ru.users.service.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -49,6 +49,8 @@ public class SecurityConfig {
 		return http.build();
 	}
 }
+
+
 
 
 

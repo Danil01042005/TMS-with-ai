@@ -150,30 +150,6 @@ services:
       - public
     restart: unless-stopped
 
-  frontend:
-    build:
-      context: "./frontend auth example"
-      args:
-        VITE_API_BASE: http://localhost:8080
-        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmmirror.com/}
-        HTTP_PROXY: ${HTTP_PROXY:-}
-        HTTPS_PROXY: ${HTTPS_PROXY:-}
-    image: auth-frontend:local
-    depends_on:
-      api-gateway:
-        condition: service_healthy
-    ports:
-      - "3030:80"
-    networks:
-      - public
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 10
-      start_period: 10s
-    restart: unless-stopped
-
 volumes:
   pgdata:
 
