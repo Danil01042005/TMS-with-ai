@@ -1,4 +1,4 @@
-package ru.tms.user.Config;
+package ru.tms.user.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -11,12 +11,12 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import java.time.Duration;
 
 @Configuration
-public class JwtDecoder {
+public class JwtDecoderConfig {
 
     @Bean
     public JwtDecoder jwtDecoder(RestTemplateBuilder restTemplateBuilder ,
-                                 @Value("${spring.security.oauth2.jwt.jwk-set-uri}") String jwkSetUri) {
-        RestTemplate tracingRestTemplate = RestTemplateBuilder
+                                 @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}") String jwkSetUri) {
+        RestTemplate tracingRestTemplate = restTemplateBuilder
                 .requestFactory(() -> {
                     SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
                     factory.setConnectTimeout((int) Duration.ofSeconds(3).toMillis());
@@ -25,7 +25,8 @@ public class JwtDecoder {
                 }).build();
         return NimbusJwtDecoder
                 .withJwkSetUri(jwkSetUri)
-                .restOperation(restTemplateBuilder)
+                .restOperations(tracingRestTemplate)
                 .build();
     }
 }
+

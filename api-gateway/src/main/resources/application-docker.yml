@@ -77,12 +77,12 @@ spring:
                   name: Access-Control-Allow-Credentials Access-Control-Allow-Origin
           
           # Business service (защищенный через JWT в микросервисе)
-          - id: users-service
-            uri: http://users-service:8082
+          - id: tasks-service
+            uri: http://tasks-service:8082
             predicates:
               - name: Path
                 args:
-                  pattern: /users-service/**
+                  pattern: /tasks-service/**
             filters:
               - name: DedupeResponseHeader
                 args:

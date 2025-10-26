@@ -3,12 +3,19 @@ server:
 
 spring:
   application:
-    name: example-under-armor-service
+    name: tasks-service
+
+  datasource:
+    url: jdbc:postgresql://tasks-postgres:5432/tasks_db
+    username: postgres
+    password: ${TASKS_DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
   security:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: http://api-gateway:8080/.well-known/jwks.json
+          jwk-set-uri: http://auth-service:8081/.well-known/jwks.json
 
 logging:
   level:

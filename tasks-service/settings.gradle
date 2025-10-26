@@ -5,7 +5,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'example-under-armor-service'
+rootProject.name = 'tasks-service'
 
 
 

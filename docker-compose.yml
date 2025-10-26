@@ -1,34 +1,55 @@
 services:
-  postgres:
+
+  auth-postgres:
     image: postgres:16-alpine
+    container_name: auth-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: jwt
+      POSTGRES_DB: auth_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD:-auth_password}
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - auth_pgdata:/var/lib/postgresql/data
     networks:
       - backend
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d jwt || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d auth_db || exit 1"]
       interval: 10s
       timeout: 3s
       retries: 10
-      start_period: 10s
+
+  tasks-postgres:
+    image: postgres:16-alpine
+    container_name: tasks-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tasks_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${TASKS_DB_PASSWORD:-tasks_password}
+    ports:
+      - "5433:5432"
+    volumes:
+      - tasks_pgdata:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tasks_db || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
 
   auth-service:
     build:
       context: ./auth-service
     image: auth-service:local
     depends_on:
-      postgres:
+      auth-postgres:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      AUTH_DB_PASSWORD: ${AUTH_DB_PASSWORD:-auth_password}
       SPRINGDOC_SWAGGER_UI_ENABLED: "true"
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318/v1/traces
       OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST: x-correlation-id
@@ -68,15 +89,18 @@ services:
       start_period: 20s
     restart: unless-stopped
 
-  example-under-armor-service:
+  tasks-service:
     build:
-      context: ./example-under-armor-service
-    image: example-under-armor-service:local
+      context: ./tasks-service
+    image: tasks-service:local
     depends_on:
       auth-service:
         condition: service_healthy
+      tasks-postgres:
+        condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      TASKS_DB_PASSWORD: ${TASKS_DB_PASSWORD:-tasks_password}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318/v1/traces
       OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST: x-correlation-id
       OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_CLIENT_REQUEST: x-correlation-id
@@ -151,7 +175,8 @@ services:
     restart: unless-stopped
 
 volumes:
-  pgdata:
+  auth_pgdata:
+  tasks_pgdata:
 
 networks:
   backend:

@@ -10,6 +10,7 @@ import ru.auth.config.RsaKeyProvider;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -51,9 +52,21 @@ public class JwtUtil {
 	public Date extractExpiration(String token) {
 		return extractClaim(token, Claims::getExpiration);
 	}
+	
+	@SuppressWarnings("unchecked")
+	public List<String> extractRoles(String token) {
+		Claims claims = extractAllClaims(token);
+		return (List<String>) claims.get("roles");
+	}
 
 	public String generateToken(UserDetails userDetails) {
 		Map<String, Object> claims = new HashMap<>();
+		
+		List<String> roles = userDetails.getAuthorities().stream()
+			.map(authority -> authority.getAuthority())
+			.collect(java.util.stream.Collectors.toList());
+		claims.put("roles", roles);
+		
 		return createToken(claims, userDetails.getUsername());
 	}
 

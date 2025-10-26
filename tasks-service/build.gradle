@@ -1,0 +1,51 @@
+plugins {
+	id 'java'
+	id 'application'
+	id 'org.springframework.boot' version '3.2.0'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'ru.users.service'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	
+	implementation 'org.postgresql:postgresql:42.7.1'
+	
+	// Logging
+	implementation 'org.slf4j:slf4j-api:2.0.7'
+	
+	// Lombok
+	compileOnly 'org.projectlombok:lombok:1.18.30'
+	annotationProcessor 'org.projectlombok:lombok:1.18.30'
+	
+	// Tests
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+}
+
+application {
+	mainClass = 'ru.tms.user.UsersServiceApplication'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+
+
