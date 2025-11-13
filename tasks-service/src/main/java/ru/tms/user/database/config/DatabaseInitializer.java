@@ -19,6 +19,8 @@ public class DatabaseInitializer{
         logger.info("Initializing database tables...");
         createQuestionBanksTable();
         createTestTable();
+        createQuestionsTable();
+        createAnswerOptionsTable();
         logger.info("Database initialization completed");
     }
 
@@ -65,6 +67,49 @@ public class DatabaseInitializer{
             logger.info("Table 'tests' created ");
         } catch (Exception e) {
             logger.error("Failed to create table 'tests': {}", e.getMessage(), e);
+            throw new RuntimeException("Database initialization failed", e);
+        }
+    }
+
+    private void createQuestionsTable() {
+        try {
+            String sql = """
+                CREATE TABLE IF NOT EXISTS questions (
+                    question_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                    test_id BIGINT NOT NULL,
+                    question_text TEXT NOT NULL,
+                    question_type ENUM('SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'OPEN') NOT NULL,
+                    difficulty ENUM('EASY', 'MEDIUM', 'HARD') NOT NULL,
+                    question_order INT DEFAULT 0,
+                    FOREIGN KEY (test_id) REFERENCES tests(test_id) ON DELETE CASCADE
+                )
+                """;
+
+            jdbcTemplate.execute(sql);
+            logger.info("Table 'questions' created ");
+        } catch (Exception e) {
+            logger.error("Failed to create table 'questions': {}", e.getMessage(), e);
+            throw new RuntimeException("Database initialization failed", e);
+        }
+    }
+
+    private void createAnswerOptionsTable() {
+        try {
+            String sql = """
+                CREATE TABLE IF NOT EXISTS answer_options (
+                    option_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                    question_id BIGINT NOT NULL,
+                    option_text TEXT NOT NULL,
+                    is_correct BOOLEAN DEFAULT FALSE,
+                    display_order INT DEFAULT 0,
+                    FOREIGN KEY (question_id) REFERENCES questions(question_id) ON DELETE CASCADE
+                )
+                """;
+
+            jdbcTemplate.execute(sql);
+            logger.info("Table 'answer_options' created ");
+        } catch (Exception e) {
+            logger.error("Failed to create table 'answer_options': {}", e.getMessage(), e);
             throw new RuntimeException("Database initialization failed", e);
         }
     }

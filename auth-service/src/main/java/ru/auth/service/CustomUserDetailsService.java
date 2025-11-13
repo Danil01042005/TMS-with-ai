@@ -3,6 +3,7 @@ package ru.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import ru.auth.entity.User;
+import ru.auth.entity.Role;
 import ru.auth.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -22,7 +23,14 @@ public class CustomUserDetailsService implements UserDetailsService {
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		User user = userRepository.findByUsername(username)
 				.orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
-		List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(user.getRole() == null ? "ROLE_USER" : user.getRole()));
+		
+		if (user.getRole() == null) {
+			throw new IllegalStateException("User role is null for user: " + username);
+		}
+		
+		List<SimpleGrantedAuthority> authorities = List.of(
+			new SimpleGrantedAuthority(user.getRole().name())
+		);
 		return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), authorities);
 	}
 }

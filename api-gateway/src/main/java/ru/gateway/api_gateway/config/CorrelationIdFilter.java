@@ -5,6 +5,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -22,17 +24,28 @@ public class CorrelationIdFilter extends OncePerRequestFilter {
     public static final String CORRELATION_ID_HEADER = "X-Correlation-Id";
     public static final String MDC_KEY = "correlationId";
 
+    private static final Logger logger = LoggerFactory.getLogger(CorrelationIdFilter.class);
+
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
+        String method = request.getMethod();
+        String uri = request.getRequestURI();
+
         String correlationId = Optional.ofNullable(request.getHeader(CORRELATION_ID_HEADER))
                 .filter(v -> !v.isBlank())
                 .orElse(UUID.randomUUID().toString());
         MDC.put(MDC_KEY, correlationId);
         try {
+            if (logger.isDebugEnabled()) {
+                logger.debug("CorrelationIdFilter: incoming {} {} correlationId={}", method, uri, correlationId);
+            }
             response.setHeader(CORRELATION_ID_HEADER, correlationId);
             HttpServletRequest wrapped = new HeaderMapRequestWrapper(request, Map.of(CORRELATION_ID_HEADER, correlationId));
             filterChain.doFilter(wrapped, response);
         } finally {
+            if (logger.isDebugEnabled()) {
+                logger.debug("CorrelationIdFilter: completed {} {} correlationId={}", method, uri, correlationId);
+            }
             MDC.remove(MDC_KEY);
         }
     }
