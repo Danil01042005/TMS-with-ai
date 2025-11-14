@@ -74,7 +74,7 @@ public class TestEntity {
     private LocalDate publishedDate;
 
     @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<QuestionEntity> questions = new ArrayList<>();в
+    private List<QuestionEntity> questions = new ArrayList<>();
 
     @PrePersist
     private void prePersist() {

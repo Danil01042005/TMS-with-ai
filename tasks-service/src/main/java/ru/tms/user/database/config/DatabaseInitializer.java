@@ -28,7 +28,7 @@ public class DatabaseInitializer{
         try {
             String sql = """
                 CREATE TABLE IF NOT EXISTS question_banks (
-                    bank_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                    bank_id BIGSERIAL PRIMARY KEY,
                     name VARCHAR(100) NOT NULL,
                     description TEXT,
                     created_date DATE DEFAULT CURRENT_DATE,
@@ -48,18 +48,18 @@ public class DatabaseInitializer{
         try {
             String sql = """
                 CREATE TABLE IF NOT EXISTS tests (
-                    test_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                    test_id BIGSERIAL PRIMARY KEY,
                     bank_id BIGINT NOT NULL,
                     name VARCHAR(300) NOT NULL,
                     description TEXT,
-                    difficulty ENUM('EASY', 'MEDIUM', 'HARD') NOT NULL,
+                    difficulty VARCHAR(20) NOT NULL,
                     time_limit INT DEFAULT 0,
                     num_questions INT DEFAULT 0,
                     attempts INT DEFAULT 0,
-                    status ENUM('DRAFT', 'PUBLISHED', 'ARCHIVED') DEFAULT 'DRAFT',
+                    status VARCHAR(20) DEFAULT 'DRAFT',
                     created_date DATE DEFAULT CURRENT_DATE,
                     published_date DATE,
-                    FOREIGN KEY (bank_id) REFERENCES question_banks(bank_id) ON DELETE CASCADE
+                    CONSTRAINT fk_tests_question_banks FOREIGN KEY (bank_id) REFERENCES question_banks(bank_id) ON DELETE CASCADE
                 )
                 """;
             
@@ -75,13 +75,13 @@ public class DatabaseInitializer{
         try {
             String sql = """
                 CREATE TABLE IF NOT EXISTS questions (
-                    question_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                    question_id BIGSERIAL PRIMARY KEY,
                     test_id BIGINT NOT NULL,
                     question_text TEXT NOT NULL,
-                    question_type ENUM('SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'OPEN') NOT NULL,
-                    difficulty ENUM('EASY', 'MEDIUM', 'HARD') NOT NULL,
+                    question_type VARCHAR(30) NOT NULL,
+                    difficulty VARCHAR(20) NOT NULL,
                     question_order INT DEFAULT 0,
-                    FOREIGN KEY (test_id) REFERENCES tests(test_id) ON DELETE CASCADE
+                    CONSTRAINT fk_questions_tests FOREIGN KEY (test_id) REFERENCES tests(test_id) ON DELETE CASCADE
                 )
                 """;
 
@@ -97,12 +97,12 @@ public class DatabaseInitializer{
         try {
             String sql = """
                 CREATE TABLE IF NOT EXISTS answer_options (
-                    option_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                    option_id BIGSERIAL PRIMARY KEY,
                     question_id BIGINT NOT NULL,
                     option_text TEXT NOT NULL,
                     is_correct BOOLEAN DEFAULT FALSE,
                     display_order INT DEFAULT 0,
-                    FOREIGN KEY (question_id) REFERENCES questions(question_id) ON DELETE CASCADE
+                    CONSTRAINT fk_answer_options_questions FOREIGN KEY (question_id) REFERENCES questions(question_id) ON DELETE CASCADE
                 )
                 """;
 

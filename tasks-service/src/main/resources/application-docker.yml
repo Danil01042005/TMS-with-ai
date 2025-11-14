@@ -8,7 +8,7 @@ spring:
   datasource:
     url: jdbc:postgresql://tasks-postgres:5432/tasks_db
     username: postgres
-    password: ${TASKS_DB_PASSWORD}
+    password: ${TASKS_DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
 
   security:
