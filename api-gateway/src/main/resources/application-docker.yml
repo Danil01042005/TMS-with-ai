@@ -1,42 +1,16 @@
 spring:
   application:
     name: api-gateway
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration
   cloud:
     gateway:
       server:
         webmvc:
           routes:
-          # Swagger UI для auth-service (оптимизировано)
-          - id: auth-swagger-ui
-            uri: http://auth-service:8081
-            predicates:
-              - name: Path
-                args:
-                  pattern: /auth/swagger-ui/**
-            filters:
-              - name: StripPrefix
-                args:
-                  parts: 1
-              - name: DedupeResponseHeader
-                args:
-                  name: Access-Control-Allow-Credentials Access-Control-Allow-Origin
           
-          # API Docs для auth-service (оптимизировано)
-          - id: auth-api-docs
-            uri: http://auth-service:8081
-            predicates:
-              - name: Path
-                args:
-                  pattern: /auth/v3/api-docs/**
-            filters:
-              - name: StripPrefix
-                args:
-                  parts: 1
-              - name: DedupeResponseHeader
-                args:
-                  name: Access-Control-Allow-Credentials Access-Control-Allow-Origin
-          
-          # Actuator для auth-service (оптимизировано)
           - id: auth-actuator
             uri: http://auth-service:8081
             order: -100
@@ -44,49 +18,24 @@ spring:
               - name: Path
                 args:
                   pattern: /auth/actuator/**
-            filters:
-              - name: StripPrefix
-                args:
-                  parts: 1
-              - name: DedupeResponseHeader
-                args:
-                  name: Access-Control-Allow-Credentials Access-Control-Allow-Origin
-          
-          # JWKS endpoint (публичный, для микросервисов)
           - id: auth-jwks
             uri: http://auth-service:8081
             predicates:
               - name: Path
                 args:
                   pattern: /.well-known/**
-            filters:
-              - name: DedupeResponseHeader
-                args:
-                  name: Access-Control-Allow-Credentials Access-Control-Allow-Origin
-          
-          # Auth endpoints (login, logout, refresh - публичные)
           - id: auth-service
             uri: http://auth-service:8081
             predicates:
               - name: Path
                 args:
                   pattern: /auth/**
-            filters:
-              - name: DedupeResponseHeader
-                args:
-                  name: Access-Control-Allow-Credentials Access-Control-Allow-Origin
-          
-          # Business service (защищенный через JWT в микросервисе)
           - id: tasks-service
             uri: http://tasks-service:8082
             predicates:
               - name: Path
                 args:
                   pattern: /tasks-service/**
-            filters:
-              - name: DedupeResponseHeader
-                args:
-                  name: Access-Control-Allow-Credentials Access-Control-Allow-Origin
 server:
   port: 8080
 logging:

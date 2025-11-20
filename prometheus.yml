@@ -10,7 +10,7 @@ scrape_configs:
   - job_name: auth-service
     static_configs:
       - targets: [ 'auth-service:8081' ]
-    metrics_path: /actuator/prometheus
+    metrics_path: /auth/actuator/prometheus
 
   - job_name: example-under-armor-service
     static_configs:
