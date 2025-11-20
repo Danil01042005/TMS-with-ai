@@ -45,6 +45,9 @@ public class QuestionBank {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
+    @Column(name = "owner_id", nullable = false, length = 128)
+    private String ownerId;
+
     @OneToMany(mappedBy = "questionBank", fetch = FetchType.LAZY)
     private List<TestEntity> tests = new ArrayList<>();
 

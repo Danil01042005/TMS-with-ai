@@ -12,14 +12,12 @@ import ru.auth.dto.RefreshRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import jakarta.servlet.http.HttpServletRequest;
- 
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
- 
 import ru.auth.service.RefreshTokenService;
 import org.springframework.web.bind.annotation.CookieValue;
 import java.time.Duration;
@@ -28,8 +26,9 @@ import java.time.Instant;
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
-@Tag(name = "Auth", description = "Аутентификация и управление пользователями")
 public class AuthController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
 	private final JwtService jwtService;
 
@@ -37,14 +36,14 @@ public class AuthController {
 
 	private final RefreshTokenService refreshTokenService;
 
+	private final PasswordEncoder passwordEncoder;
+
 	@PostMapping("/login")
-	@Operation(summary = "Логин", description = "Аутентификация пользователя и выдача JWT")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "Успех"),
-		@ApiResponse(responseCode = "401", description = "Неверные данные")
-	})
 	public ResponseEntity<?> createAuthenticationToken(@Valid @RequestBody AuthenticationRequest authenticationRequest, HttpServletRequest request) {
 		try {
+			var userOpt = userService.findByUsername(authenticationRequest.getUsername());
+			logger.warn("User present: {}", userOpt.isPresent());
+			userOpt.ifPresent(user -> logger.warn("Password matches stored hash: {}", passwordEncoder.matches(authenticationRequest.getPassword(), user.getPassword())));
 			final String jwt = jwtService.createJwtToken(
 					authenticationRequest.getUsername(),
 					authenticationRequest.getPassword()
@@ -56,6 +55,7 @@ public class AuthController {
 					.header(HttpHeaders.SET_COOKIE, cookie.toString())
 					.body(new AuthenticationResponse(jwt));
 		} catch (Exception ex) {
+            logger.warn("Login failed for username {}", authenticationRequest.getUsername(), ex);
 			return ResponseEntity.status(401)
 					.header("X-Error-Code", "AUTH_INVALID_CREDENTIALS")
 					.header("X-Service", "auth-service")
@@ -68,10 +68,6 @@ public class AuthController {
 
 
 	@PostMapping("/logout")
-	@Operation(summary = "Выход", description = "Клиент чистит локальные токены; если передан refresh, он будет отозван")
-	@ApiResponses({
-			@ApiResponse(responseCode = "200", description = "Успех: независимо от состояния refresh")
-	})
 	public ResponseEntity<?> logout(@Valid @RequestBody(required = false) RefreshRequest body, @CookieValue(name = "refresh_token", required = false) String cookieToken, HttpServletRequest request) {
 		try {
 			String incoming = cookieToken != null && !cookieToken.isBlank() ? cookieToken : (body != null ? body.getRefreshToken() : null);
@@ -95,11 +91,6 @@ public class AuthController {
 	}
 
 	@PostMapping("/refresh")
-	@Operation(summary = "Обновить JWT и refresh (ротация)", description = "По валидному refresh выполняется ротация: старый revocation, выдаётся новый refresh и новый JWT")
-	@ApiResponses({
-			@ApiResponse(responseCode = "200", description = "Успех: возвращены новый JWT и новый refresh"),
-			@ApiResponse(responseCode = "401", description = "Недействительный или повторно использованный refresh")
-	})
 	public ResponseEntity<?> refresh(@Valid @RequestBody(required = false) RefreshRequest body, @CookieValue(name = "refresh_token", required = false) String cookieToken, HttpServletRequest request) {
 		String refreshToken = null;
 		if (cookieToken != null && !cookieToken.isBlank()) {

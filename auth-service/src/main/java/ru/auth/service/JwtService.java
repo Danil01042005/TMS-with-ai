@@ -18,16 +18,24 @@ public class JwtService {
 
     private final JwtUtil jwtUtil;
 
+    private final UserService userService;
+
     public String createJwtToken(String username, String password) throws Exception {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
 
         final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        return jwtUtil.generateToken(userDetails);
+        Long userId = userService.findByUsername(username)
+                .map(ru.auth.entity.User::getId)
+                .orElseThrow(() -> new IllegalStateException("User not found for username: " + username));
+        return jwtUtil.generateToken(userDetails, userId);
     }
 
     public String generateJwtForUsername(String username) {
         final UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        return jwtUtil.generateToken(userDetails);
+        Long userId = userService.findByUsername(username)
+                .map(ru.auth.entity.User::getId)
+                .orElseThrow(() -> new IllegalStateException("User not found for username: " + username));
+        return jwtUtil.generateToken(userDetails, userId);
     }
 }
 

@@ -59,13 +59,14 @@ public class JwtUtil {
 		return (List<String>) claims.get("roles");
 	}
 
-	public String generateToken(UserDetails userDetails) {
+	public String generateToken(UserDetails userDetails, Long userId) {
 		Map<String, Object> claims = new HashMap<>();
 		
 		List<String> roles = userDetails.getAuthorities().stream()
 			.map(authority -> authority.getAuthority())
 			.collect(java.util.stream.Collectors.toList());
 		claims.put("roles", roles);
+		claims.put("userId", userId);
 		
 		return createToken(claims, userDetails.getUsername());
 	}

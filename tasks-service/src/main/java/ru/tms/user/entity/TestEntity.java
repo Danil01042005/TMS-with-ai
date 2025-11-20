@@ -73,6 +73,9 @@ public class TestEntity {
     @Column(name = "published_date")
     private LocalDate publishedDate;
 
+    @Column(name = "owner_id", nullable = false, length = 128)
+    private String ownerId;
+
     @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuestionEntity> questions = new ArrayList<>();
 
@@ -83,6 +86,9 @@ public class TestEntity {
         }
         if (status == null) {
             status = TestStatus.DRAFT;
+        }
+        if (ownerId == null && questionBank != null) {
+            ownerId = questionBank.getOwnerId();
         }
     }
 }

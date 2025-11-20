@@ -32,11 +32,24 @@ public class DatabaseInitializer{
                     name VARCHAR(100) NOT NULL,
                     description TEXT,
                     created_date DATE DEFAULT CURRENT_DATE,
-                    is_active BOOLEAN DEFAULT TRUE
+                    is_active BOOLEAN DEFAULT TRUE,
+                    owner_id VARCHAR(128) NOT NULL
                 )
                 """;
             
             jdbcTemplate.execute(sql);
+            jdbcTemplate.execute("""
+                ALTER TABLE question_banks
+                ADD COLUMN IF NOT EXISTS owner_id VARCHAR(128)
+            """);
+            jdbcTemplate.execute("""
+                UPDATE question_banks
+                SET owner_id = COALESCE(owner_id, 'system')
+            """);
+            jdbcTemplate.execute("""
+                ALTER TABLE question_banks
+                ALTER COLUMN owner_id SET NOT NULL
+            """);
             logger.info("Table 'question_banks' created ");
         } catch (Exception e) {
             logger.error("Failed to create table 'question_banks': {}", e.getMessage(), e);
@@ -59,11 +72,27 @@ public class DatabaseInitializer{
                     status VARCHAR(20) DEFAULT 'DRAFT',
                     created_date DATE DEFAULT CURRENT_DATE,
                     published_date DATE,
+                    owner_id VARCHAR(128) NOT NULL,
                     CONSTRAINT fk_tests_question_banks FOREIGN KEY (bank_id) REFERENCES question_banks(bank_id) ON DELETE CASCADE
                 )
                 """;
             
             jdbcTemplate.execute(sql);
+            jdbcTemplate.execute("""
+                ALTER TABLE tests
+                ADD COLUMN IF NOT EXISTS owner_id VARCHAR(128)
+            """);
+            jdbcTemplate.execute("""
+                UPDATE tests t
+                SET owner_id = qb.owner_id
+                FROM question_banks qb
+                WHERE t.bank_id = qb.bank_id
+                  AND (t.owner_id IS NULL OR t.owner_id = '')
+            """);
+            jdbcTemplate.execute("""
+                ALTER TABLE tests
+                ALTER COLUMN owner_id SET NOT NULL
+            """);
             logger.info("Table 'tests' created ");
         } catch (Exception e) {
             logger.error("Failed to create table 'tests': {}", e.getMessage(), e);
