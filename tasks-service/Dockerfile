@@ -1,4 +1,4 @@
-FROM gradle:8.8.0-jdk21 AS build
+FROM gradle:jdk23 AS build
 WORKDIR /workspace
 
 ENV GRADLE_OPTS="-Dorg.gradle.daemon=false -Dorg.gradle.vfs.watch=false"
@@ -10,7 +10,7 @@ COPY src src
 RUN gradle --no-daemon bootJar -x test
 
 
-FROM eclipse-temurin:21-jre AS runtime
+FROM eclipse-temurin:23-jre AS runtime
 WORKDIR /app
 
 RUN apt-get update \

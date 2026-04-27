@@ -4,10 +4,12 @@ package ru.auth.util;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import ru.auth.config.RsaKeyProvider;
 
+import java.time.Duration;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -18,9 +20,12 @@ import java.util.function.Function;
 public class JwtUtil {
 
 	private final RsaKeyProvider rsaKeyProvider;
+	private final Duration jwtExpiration;
 
-	public JwtUtil(RsaKeyProvider rsaKeyProvider) {
+	public JwtUtil(RsaKeyProvider rsaKeyProvider, 
+	               @Value("${auth.jwt.expires:PT10M}") String jwtExpirationStr) {
 		this.rsaKeyProvider = rsaKeyProvider;
+		this.jwtExpiration = Duration.parse(jwtExpirationStr);
 	}
 
 	public String extractUsername(String token) {
@@ -72,12 +77,13 @@ public class JwtUtil {
 	}
 
 	private String createToken(Map<String, Object> claims, String subject) {
+		long expirationMillis = System.currentTimeMillis() + jwtExpiration.toMillis();
 		return Jwts.builder()
 				.setHeaderParam("kid", rsaKeyProvider.getKeyId())
 				.setClaims(claims)
 				.setSubject(subject)
 				.setIssuedAt(new Date(System.currentTimeMillis()))
-				.setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 10))
+				.setExpiration(new Date(expirationMillis))
 				.signWith(rsaKeyProvider.getPrivateKey(), SignatureAlgorithm.RS256)
 				.compact();
 	}

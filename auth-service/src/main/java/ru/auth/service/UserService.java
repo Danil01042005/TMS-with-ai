@@ -3,10 +3,11 @@ package ru.auth.service;
 
 import lombok.RequiredArgsConstructor;
 import ru.auth.entity.User;
-import ru.auth.entity.Role;
 import ru.auth.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import ru.auth.dto.SignupRequest;
+import ru.auth.service.exception.UserAlreadyExistsException;
 
 import java.util.Optional;
 
@@ -30,6 +31,19 @@ public class UserService {
 
 	public Optional<User> findByUsername(String username) {
 		return userRepository.findByUsername(username);
+	}
+
+	public User register(SignupRequest request) {
+		if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+			throw new UserAlreadyExistsException(request.getUsername());
+		}
+
+		User user = new User();
+		user.setUsername(request.getUsername());
+		user.setPassword(request.getPassword());
+		user.setRole(request.getRole());
+
+		return save(user);
 	}
 }
 

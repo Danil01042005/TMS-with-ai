@@ -10,7 +10,9 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "refresh_tokens", indexes = {
-        @Index(name = "idx_refresh_token_hash", columnList = "token_hash", unique = true)
+        @Index(name = "idx_refresh_token_hash", columnList = "token_hash", unique = true),
+        @Index(name = "idx_refresh_token_user_expires", columnList = "user_id, expires_at"),
+        @Index(name = "idx_refresh_token_expires", columnList = "expires_at")
 })
 @Data
 @NoArgsConstructor
@@ -34,9 +36,8 @@ public class RefreshToken {
 
     @Column(nullable = false)
     private Instant expiresAt;
-
-    @Column(nullable = false)
-    private boolean revoked;
+    
+    // Поле revoked удалено - отозванные токены хранятся в отдельной таблице RevokedTokenBlacklist
 }
 
 

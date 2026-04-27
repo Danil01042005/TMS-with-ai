@@ -1,5 +1,24 @@
 services:
 
+  frontend:
+    build:
+      context: ../front example
+    image: tms-frontend:local
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    ports:
+      - "3030:80"
+    networks:
+      - public
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/health || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
   auth-postgres:
     image: postgres:16-alpine
     container_name: auth-postgres
@@ -50,10 +69,15 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: docker
       AUTH_DB_PASSWORD: ${AUTH_DB_PASSWORD:-auth_password}
-      SPRINGDOC_SWAGGER_UI_ENABLED: "true"
+      AUTH_JWT_KEYS_DIR: /app/keys
+      AUTH_JWT_EXPIRES: ${AUTH_JWT_EXPIRES:-PT10M}
+      AUTH_REFRESH_EXPIRES: ${AUTH_REFRESH_EXPIRES:-P7D}
+      AUTH_REFRESH_MAX_TOKENS_PER_USER: ${AUTH_REFRESH_MAX_TOKENS_PER_USER:-5}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318/v1/traces
       OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST: x-correlation-id
       OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_CLIENT_REQUEST: x-correlation-id
+    volumes:
+      - auth_keys:/app/keys
     networks:
       - backend
     healthcheck:
@@ -98,14 +122,38 @@ services:
         condition: service_healthy
       tasks-postgres:
         condition: service_healthy
+      minio:
+        condition: service_started
+      minio-init:
+        condition: service_completed_successfully
     environment:
       SPRING_PROFILES_ACTIVE: docker
       TASKS_DB_PASSWORD: ${TASKS_DB_PASSWORD:-tasks_password}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      GROQ_API_URL: ${GROQ_API_URL:-https://api.groq.com/openai/v1/chat/completions}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.1-8b-instant}
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_BUCKET: ${S3_BUCKET:-quiz-files}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-minioadmin}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-minioadmin}
+      S3_PATH_STYLE_ACCESS_ENABLED: ${S3_PATH_STYLE_ACCESS_ENABLED:-true}
+      APP_SEED_DEMO_DATA: ${APP_SEED_DEMO_DATA:-true}
+      APP_SEED_FORCE: ${APP_SEED_FORCE:-false}
+      APP_SEED_BULK_DATA: ${APP_SEED_BULK_DATA:-false}
+      APP_SEED_BULK_BANKS: ${APP_SEED_BULK_BANKS:-25}
+      APP_SEED_BULK_TESTS_PER_BANK: ${APP_SEED_BULK_TESTS_PER_BANK:-12}
+      APP_SEED_BULK_QUESTIONS_PER_TEST: ${APP_SEED_BULK_QUESTIONS_PER_TEST:-10}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318/v1/traces
       OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST: x-correlation-id
       OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_CLIENT_REQUEST: x-correlation-id
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     networks:
       - backend
+      - public
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8082/actuator/health || exit 1"]
       interval: 10s
@@ -113,6 +161,51 @@ services:
       retries: 10
       start_period: 20s
     restart: unless-stopped
+
+  minio:
+    # В официальном образе часто нет curl/sh для healthcheck — из-за этого контейнер мог быть "unhealthy" и цепочка зависимостей ломалась.
+    image: minio/minio:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-minioadmin}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - backend
+      - public
+    restart: unless-stopped
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_started
+    environment:
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_BUCKET: ${S3_BUCKET:-quiz-files}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-minioadmin}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-minioadmin}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        for i in $$(seq 1 90); do
+          if mc alias set local "$$S3_ENDPOINT" "$$S3_ACCESS_KEY" "$$S3_SECRET_KEY" 2>/dev/null; then
+            break
+          fi
+          echo "minio-init: ждём MinIO ($$i/90)..."
+          sleep 2
+        done
+        mc mb --ignore-existing "local/$$S3_BUCKET"
+        echo "minio-init: bucket готов."
+    networks:
+      - backend
+    restart: "no"
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.105.0
@@ -177,6 +270,8 @@ services:
 volumes:
   auth_pgdata:
   tasks_pgdata:
+  auth_keys:
+  minio_data:
 
 networks:
   backend:

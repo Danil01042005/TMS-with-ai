@@ -5,6 +5,11 @@ spring:
   application:
     name: tasks-service
 
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 20MB
+
   datasource:
     url: jdbc:postgresql://tasks-postgres:5432/tasks_db
     username: postgres
@@ -17,9 +22,30 @@ spring:
         jwt:
           jwk-set-uri: http://auth-service:8081/.well-known/jwks.json
 
+  # Groq API configuration (бесплатный)
+  groq:
+    api:
+      key: ${GROQ_API_KEY:}
+      url: ${GROQ_API_URL:https://api.groq.com/openai/v1/chat/completions}
+      connect-timeout-ms: ${GROQ_CONNECT_TIMEOUT_MS:3000}
+      read-timeout-ms: ${GROQ_READ_TIMEOUT_MS:15000}
+      retry:
+        max-attempts: ${GROQ_RETRY_MAX_ATTEMPTS:3}
+        backoff-ms: ${GROQ_RETRY_BACKOFF_MS:800}
+      rate-limit-per-minute: ${GROQ_RATE_LIMIT_PER_MINUTE:30}
+    model: ${GROQ_MODEL:llama-3.1-8b-instant}
+
 logging:
   level:
     root: INFO
+
+springdoc:
+  swagger-ui:
+    enabled: false
+    path: /tasks-service/swagger-ui
+  api-docs:
+    enabled: true
+    path: /tasks-service/v3/api-docs
 
 management:
   endpoints:
@@ -59,6 +85,37 @@ management:
   otlp:
     tracing:
       endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
+
+app:
+  frontend:
+    base-url: ${FRONTEND_BASE_URL:http://localhost:3030}
+  s3:
+    # Если endpoint задан, используется S3-совместимый API (например, MinIO, локальные шлюзы).
+    endpoint: ${S3_ENDPOINT:}
+    # URL для браузера при скачивании по pre-signed ссылке (иначе в ссылке будет http://minio:9000).
+    publicEndpoint: ${S3_PUBLIC_ENDPOINT:}
+    region: ${S3_REGION:us-east-1}
+    bucket: ${S3_BUCKET:}
+    accessKey: ${S3_ACCESS_KEY:}
+    secretKey: ${S3_SECRET_KEY:}
+    presignTtlSeconds: ${S3_PRESIGN_TTL_SECONDS:300}
+    pathStyleAccessEnabled: ${S3_PATH_STYLE_ACCESS_ENABLED:false}
+
+  upload:
+    maxBytes: ${UPLOAD_MAX_BYTES:10485760}
+    allowedContentTypes: ${UPLOAD_ALLOWED_CONTENT_TYPES:application/pdf,text/plain,image/png,image/jpeg,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document}
+    allowedExtensions: ${UPLOAD_ALLOWED_EXTENSIONS:pdf,txt,png,jpg,jpeg,doc,docx}
+
+  # Демо-данные в PostgreSQL при старте (совпадайте owner-id с userId из JWT / id в auth.users).
+  seed:
+    demo-data: ${APP_SEED_DEMO_DATA:true}
+    force: ${APP_SEED_FORCE:false}
+    owner-id: ${DEMO_TASKS_OWNER_ID:1}
+    bulk-data: ${APP_SEED_BULK_DATA:false}
+    bulk:
+      banks: ${APP_SEED_BULK_BANKS:25}
+      tests-per-bank: ${APP_SEED_BULK_TESTS_PER_BANK:12}
+      questions-per-test: ${APP_SEED_BULK_QUESTIONS_PER_TEST:10}
 
 
 

@@ -1,6 +1,12 @@
 spring:
   application:
     name: api-gateway
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 20MB
+  codec:
+    max-in-memory-size: 16MB
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
@@ -36,8 +42,30 @@ spring:
               - name: Path
                 args:
                   pattern: /tasks-service/**
+          - id: tasks-seo-robots
+            uri: http://tasks-service:8082
+            predicates:
+              - name: Path
+                args:
+                  pattern: /robots.txt
+          - id: tasks-seo-sitemap
+            uri: http://tasks-service:8082
+            predicates:
+              - name: Path
+                args:
+                  pattern: /sitemap.xml
 server:
   port: 8080
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui
+    disable-swagger-default-url: true
+    urls:
+      - name: auth-service
+        url: /auth/v3/api-docs
+      - name: tasks-service
+        url: /tasks-service/v3/api-docs
 logging:
   level:
     root: INFO

@@ -1,0 +1,11 @@
+.gradle
+build
+bin
+out
+*.iml
+.idea
+.vscode
+Dockerfile*
+README*
+logs
+

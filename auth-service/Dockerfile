@@ -1,4 +1,4 @@
-FROM gradle:8.8.0-jdk21 AS build
+FROM gradle:jdk23 AS build
 WORKDIR /workspace
 
 ENV GRADLE_OPTS="-Dorg.gradle.daemon=false -Dorg.gradle.vfs.watch=false"
@@ -10,7 +10,7 @@ COPY src src
 RUN gradle --no-daemon bootJar -x test
 
 
-FROM eclipse-temurin:21-jre AS runtime
+FROM eclipse-temurin:23-jre AS runtime
 WORKDIR /app
 
 RUN apt-get update \
@@ -18,6 +18,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /workspace/build/libs/*.jar /app/app.jar
+
+# Создаем директорию для RSA ключей с правильными правами
+RUN mkdir -p /app/keys && chmod 700 /app/keys
 
 EXPOSE 8081
 

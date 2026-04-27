@@ -36,3 +36,8 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### RSA Keys (не должны попадать в git!) ###
+keys/
+rsa-*.pem
+rsa-key-id.txt

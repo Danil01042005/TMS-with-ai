@@ -5,6 +5,16 @@ spring:
   application:
     name: auth-service
 
+  # RSA Keys configuration
+  auth:
+    jwt:
+      keys:
+        directory: ${AUTH_JWT_KEYS_DIR:/app/keys}
+      expires: ${AUTH_JWT_EXPIRES:PT10M}
+    refresh:
+      expires: ${AUTH_REFRESH_EXPIRES:P7D}
+      max-tokens-per-user: ${AUTH_REFRESH_MAX_TOKENS_PER_USER:5}
+
   datasource:
     url: jdbc:postgresql://auth-postgres:5432/auth_db
     username: postgres
@@ -32,6 +42,14 @@ logging:
         controller: DEBUG
         config:
           JwtAuthenticationFilter: INFO
+
+springdoc:
+  swagger-ui:
+    enabled: false
+    path: /auth/swagger-ui
+  api-docs:
+    enabled: true
+    path: /auth/v3/api-docs
 
 management:
   endpoints:

@@ -9,7 +9,7 @@ version = '0.0.1-SNAPSHOT'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
+		languageVersion = JavaLanguageVersion.of(23)
 	}
 }
 
@@ -40,6 +40,12 @@ dependencies {
 	implementation 'io.micrometer:micrometer-registry-prometheus'
 	implementation 'io.micrometer:micrometer-tracing-bridge-otel'
 	runtimeOnly 'io.opentelemetry:opentelemetry-exporter-otlp'
+
+	// SpringDoc OpenAPI (Swagger)
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.0'
+	// Required by springdoc on newer versions (avoids NoClassDefFoundError: kotlin/reflect/full/KClasses)
+	implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.9.25'
+	implementation 'org.jetbrains.kotlin:kotlin-reflect:1.9.25'
 
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'

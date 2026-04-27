@@ -21,6 +21,7 @@ public class DatabaseInitializer{
         createTestTable();
         createQuestionsTable();
         createAnswerOptionsTable();
+        createUserFilesTable();
         logger.info("Database initialization completed");
     }
 
@@ -139,6 +140,36 @@ public class DatabaseInitializer{
             logger.info("Table 'answer_options' created ");
         } catch (Exception e) {
             logger.error("Failed to create table 'answer_options': {}", e.getMessage(), e);
+            throw new RuntimeException("Database initialization failed", e);
+        }
+    }
+
+    private void createUserFilesTable() {
+        try {
+            String sql = """
+                CREATE TABLE IF NOT EXISTS user_files (
+                    file_id BIGSERIAL PRIMARY KEY,
+                    owner_id VARCHAR(128) NOT NULL,
+                    bank_id BIGINT,
+                    test_id BIGINT,
+                    object_key TEXT NOT NULL UNIQUE,
+                    original_file_name TEXT NOT NULL,
+                    content_type TEXT,
+                    file_size_bytes BIGINT NOT NULL,
+                    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    CONSTRAINT fk_user_files_bank FOREIGN KEY (bank_id) REFERENCES question_banks(bank_id) ON DELETE CASCADE,
+                    CONSTRAINT fk_user_files_test FOREIGN KEY (test_id) REFERENCES tests(test_id) ON DELETE CASCADE,
+                    CONSTRAINT chk_user_files_one_target CHECK (
+                        (bank_id IS NOT NULL AND test_id IS NULL) OR
+                        (bank_id IS NULL AND test_id IS NOT NULL)
+                    )
+                )
+                """;
+
+            jdbcTemplate.execute(sql);
+            logger.info("Table 'user_files' created");
+        } catch (Exception e) {
+            logger.error("Failed to create table 'user_files': {}", e.getMessage(), e);
             throw new RuntimeException("Database initialization failed", e);
         }
     }
