@@ -21,10 +21,9 @@ jobs:
           distribution: temurin
           java-version: "23"
 
+      # v6 runs on Node 24; cache job identity defaults to matrix JSON (per service).
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          build-root-directory: ${{ matrix.service }}
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -46,9 +45,7 @@ jobs:
           java-version: "23"
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          build-root-directory: tasks-service
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Run tasks-service tests
         run: gradle test --no-daemon
